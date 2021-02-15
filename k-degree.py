@@ -4,6 +4,7 @@ import collections
 import networkx as nx
 import sys
 import os
+import matplotlib
 
 
 def compute_I(d):
@@ -94,6 +95,8 @@ if __name__ == "__main__":
                 if node_to_add not in G:
                     G.add_node(node_to_add)
                 G.add_edge(start_node, node_to_add)
+
+    nx.draw(G)
 
     # Degree arrays preparation
     d = [x[1] for x in G.degree()]
