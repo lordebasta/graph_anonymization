@@ -26,7 +26,7 @@ def c_new(d, k):
     return c_new_cost
 
 
-def greedy_rec_algorithm(array_degrees, k_degree, pos_init, extension):
+def greedy_rec_algorithm(d, array_degrees, k_degree, pos_init, extension):
     if pos_init + extension >= len(array_degrees) - 1:
         for i in range(pos_init, len(array_degrees)):
             array_degrees[i] = array_degrees[pos_init]
@@ -39,9 +39,9 @@ def greedy_rec_algorithm(array_degrees, k_degree, pos_init, extension):
         if c_merge_cost > c_new_cost:
             for i in range(pos_init, pos_init + extension):
                 array_degrees[i] = d1
-            greedy_rec_algorithm(array_degrees, k_degree, pos_init + extension, k_degree)
+            greedy_rec_algorithm(d, array_degrees, k_degree, pos_init + extension, k_degree)
         else:
-            greedy_rec_algorithm(array_degrees, k_degree, pos_init, extension + 1)
+            greedy_rec_algorithm(d, array_degrees, k_degree, pos_init, extension + 1)
 
 
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print("Array of degrees sorted (array_degrees) : {}".format(array_degrees))
     array_degrees_greedy = array_degrees
     # TODO insert here the code
-    greedy_rec_algorithm(array_degrees_greedy, k_degree, 0, k_degree)
+    greedy_rec_algorithm(d, array_degrees_greedy, k_degree, 0, k_degree)
 
     graph_greedy = construct_graph(array_index, array_degrees_greedy)
     print("graph_greedy_nodes: ", end="")
