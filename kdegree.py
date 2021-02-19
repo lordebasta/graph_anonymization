@@ -14,6 +14,23 @@ def compute_I(d):
         i_value += (d_i - d_j)
     return i_value
 
+def compute_da(d, k, t_list=[]):
+    # costs = [[compute_da(d[:t], k)[0]+compute_I(d[t:]), t] for t in range(k, len(d)-k+1)]
+    # costs.append([compute_I(d), 0])
+    # print(costs)
+    # return min(costs, key=lambda x: x[0])
+    # print(type(t_list))
+    if len(d) < 2*k: 
+        t_list.insert(0, 0)
+        return (compute_I(d), t_list)
+    costs = []
+    for t in range(k, len(d)-k+1):
+        costs.append( [compute_da(d[:t], k, t_list)[0]+compute_I(d[t:]), t])
+    costs.append([compute_I(d), 0])
+    # print(costs)
+    minimum = min(costs, key=lambda x: x[0])
+    t_list.insert(0, minimum[1])
+    return (minimum[0], t_list)
 
 def c_merge(d, d1, k):
     c_merge_cost = d1 - d[k] + compute_I(d[k+1:min(len(d), 2*k)])
@@ -45,9 +62,22 @@ def greedy_rec_algorithm(d, array_degrees, k_degree, pos_init, extension):
 
 
 
-def dp_graph_anonymization():
-    # TODO to complete
+def dp_graph_anonymization(k, d):
+    if len(d) < 2*k: return [d[0] for i in d]
+    
     return
+
+def apply_I(d): 
+    result = [d[0] for i in d]
+    return result
+
+def apply_da(d, k, t_list): 
+    for t in t_list: 
+        if t == 0: return apply_I(d)
+        else:
+            result= apply_da(d[:t], k, t_list[1:])
+            result.extend(apply_I(d[t:]))
+            return result
 
 
 def construct_graph(tab_index, anonymized_degree):
@@ -72,44 +102,7 @@ def construct_graph(tab_index, anonymized_degree):
 
 
 if __name__ == "__main__":
-    # take the arguments k and the dataset
-    k_degree = int(sys.argv[1])
-    file_graph = sys.argv[2]
-
-    G = nx.Graph()
-    
-    if os.path.exists(file_graph): 
-        # if file exist
-        with open(file_graph) as f:
-            content = f.readlines()
-        # read each line
-        content = [x.strip() for x in content]
-        for line in content:
-            # split name inside each line
-            names = line.split(",")
-            start_node = names[0]
-            if start_node not in G:
-                G.add_node(start_node)
-            for index in range(1, len(names)):
-                node_to_add = names[index]
-                if node_to_add not in G:
-                    G.add_node(node_to_add)
-                G.add_edge(start_node, node_to_add)
-
-    nx.draw(G)
-
-    # Degree arrays preparation
-    d = [x[1] for x in G.degree()]
-    array_index = np.argsort(d)[::-1]
-    array_degrees = np.sort(d)[::-1]
-    print("Array of degrees (d) : {}".format(d))
-    print("Array of degrees sorted (array_degrees) : {}".format(array_degrees))
-    array_degrees_greedy = array_degrees
-    # TODO insert here the code
-    greedy_rec_algorithm(d, array_degrees_greedy, k_degree, 0, k_degree)
-
-    graph_greedy = construct_graph(array_index, array_degrees_greedy)
-    print("graph_greedy_nodes: ", end="")
-    print(graph_greedy.nodes)
-    print("graph_greedy_nodes sorted: ", end="")
-    print(np.sort(graph_greedy.nodes))
+    d = [3, 3, 3, 2, 1]
+    t_list = compute_da(d, 2)[1]
+    d1 = apply_da(d, 2, t_list)
+    print(d1)
