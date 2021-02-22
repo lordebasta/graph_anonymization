@@ -153,64 +153,6 @@ def dp_algorithm(d, k):
 
     return result
 
-
-def compute_I(d):
-    d_i = d[0]
-    i_value = 0
-    for d_j in d:
-        i_value += (d_i - d_j)
-    return i_value
-
-def compute_da(d, k):
-    costs_I = [[0 for _ in range(len(d))] for _ in range(len(d) - 1)]
-
-    for i in range(len(d) - 1):
-        acc = 0 
-        for j in range(i + 1, len(d)):
-            acc += d[i] - d[j]
-            costs_I[i][j] = acc
-
-    for c in costs_I:
-        print("costs:", c)
-    
-    return compute_da_algorithm(d, 0, len(d), k, costs_I)
-
-def compute_da_algorithm(d, start_pos, length, k, costs_I, t_list=[]):
-    if length < 2*k: 
-        # t_list.insert(0, 0)
-        return (costs_I[start_pos][start_pos + length - 1], t_list)
-    costs = []
-    for t in range(start_pos + k, start_pos + length - k + 1):
-        costs.append([compute_da_algorithm(d, 0, t, k, costs_I, t_list)[0]+costs_I[t][-1], t])
-    costs.append([costs_I[0][-1], 0])
-    minimum = min(costs, key=lambda x: x[0])
-    t_list.insert(0, minimum[1])
-    return (minimum[0], t_list)
-
-def compute_rec_da(d, k, t_list=[]):
-    if len(d) < 2*k: 
-        t_list.insert(0, 0)
-        return (compute_I(d), t_list)
-    costs = []
-    for t in range(k, len(d)-k+1):
-        costs.append([compute_rec_da(d[:t], k, t_list)[0]+compute_I(d[t:]), t])
-    costs.append([compute_I(d), 0])
-    minimum = min(costs, key=lambda x: x[0])
-    t_list.insert(0, minimum[1])
-    return (minimum[0], t_list)
-
-def apply_I(d): 
-    result = [d[0] for i in d]
-    return result
-
-def apply_da(d, k, t_list):
-    for t in t_list: 
-        if t == 0: return apply_I(d)
-        else:
-            result = apply_da(d[:t], k, t_list[1:])
-            result.extend(apply_I(d[t:]))
-            return result
-
 def construct_graph(tab_index, anonymized_degree):
     graph = nx.Graph()
     if sum(anonymized_degree) % 2 == 1:
