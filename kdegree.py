@@ -49,15 +49,13 @@ def greedy_algorithm(d, k):
     
     return result
 
-@dataclass
-class Da:
-    cost: float
-    t: int
-
 def dp_slow_algorithm(d, k): 
     if k == 1: raise ValueError("k == 1 means no anonymization!")
 
-    
+    @dataclass
+    class Da:
+        cost: float
+        t: int
 
     def compute_all_I(d, k):  
         costs_I = [[float('inf') for _ in range(len(d))] for _ in range(len(d) - 1)]
@@ -84,25 +82,6 @@ def dp_slow_algorithm(d, k):
                 cost = costs_I[0][i]
 
             da_list[i] = Da(cost=cost, t=t)
-    # def compute_da(d, start, end, k, costs_I): 
-    #     length = end - start + 1 
-
-    #     if length < 2*k:
-    #         cost = costs_I[start][end]
-    #         return cost, [0]
-        
-    #     costs = []
-    #     for t in range (k - 1, end - k + 1):
-    #         cost_da, t_list = compute_da(d, 0, t, k, costs_I) 
-    #         cost_fill_next = costs_I[t + 1][end]
-    #         t_list.insert(0, t)
-    #         costs.append((cost_da + cost_fill_next, t_list))
-    #     costs.append((costs_I[start][end], [0]))
-    #     min_cost, t_list = min(costs, key=lambda c:c[0])
-    #     return min_cost, t_list
-    
-    
-    # cost, t_list = compute_da(d, 0, len(d) - 1, k, costs_I)
 
     t_list = []
     t = da_list[-1].t
@@ -110,8 +89,6 @@ def dp_slow_algorithm(d, k):
         t_list.append(t)
         t = da_list[t].t
     t_list.append(0)
-
-    print(t_list)
 
     result = [v for v in d]
     end = len(result) - 1 
@@ -127,37 +104,42 @@ def dp_slow_algorithm(d, k):
 
 def dp_algorithm(d, k): 
     if k == 1: raise ValueError("k == 1 means no anonymization!")
-    
+
+    @dataclass
+    class Da:
+        cost: float
+        t: int
+
     def compute_all_I(d, k):  
-        costs_I = [[0 for _ in range(min(2*k + i - 1, len(d) - 1))] for i in range(len(d) - 1)]
+        costs_I = [[float('inf') for _ in range(len(d))] for _ in range(len(d) - 1)]
         for i in range(len(d) - 1):
             acc = 0 
-            for j in range(k + i - 1, min(2*k + i - 1, len(d) - 1)):
+            for j in range(k + i - 2, min(2*k + i -1, len(d))):
                 acc += d[i] - d[j]
                 costs_I[i][j] = acc  
-        # for c in costs_I:
-        #     print(c)
         return costs_I
 
-    def compute_da(d, start, end, k, costs_I): 
-        length = end - start + 1 
-
-        if length < 2*k:
-            cost = costs_I[start][end]
-            return cost, [0]
-        
-        costs = []
-        for t in range (max(k - 1, end - 2*k + 2), end - k + 1):
-            cost_da, t_list = compute_da(d, 0, t, k, costs_I) 
-            cost_fill_next = costs_I[t + 1][end]
-            t_list.insert(0, t)
-            costs.append((cost_da + cost_fill_next, t_list))
-        costs.append((costs_I[start][end], [0]))
-        min_cost, t_list = min(costs, key=lambda c:c[0])
-        return min_cost, t_list
-
     costs_I = compute_all_I(d, k)
-    cost, t_list = compute_da(d, 0, len(d) - 1, k, costs_I)
+
+    da_list = [Da(cost=float('inf'), t=-1) for _ in d]
+
+    for i in range(len(d)):
+        if i < 2*k - 1:
+            da_list[i] = Da(cost=costs_I[0][i], t=0)
+        else:
+            t, cost = min(((t, da_list[t].cost + costs_I[t+1][i]) for t in range(max(k - 1, i - 2*k), i - k + 1)), key= lambda x:x[1])
+            if costs_I[0][i]  < cost:
+                t = 0
+                cost = costs_I[0][i]
+
+            da_list[i] = Da(cost=cost, t=t)
+
+    t_list = []
+    t = da_list[-1].t
+    while t > 0:
+        t_list.append(t)
+        t = da_list[t].t
+    t_list.append(0)
 
     result = [v for v in d]
     end = len(result) - 1 
@@ -261,17 +243,31 @@ if __name__ == "__main__":
         [3,3,3,2,1],
         [4,3,3,2,1,1]
     ]
-    k = 2
 
-    for d in d_list:
-        # print("d: ", d)
-        # print(greedy_algorithm(d, k), "==", dp_slow_algorithm(d, k))
+    results_k_2 = [
+        [8,8,7,7,3,3,2,2],
+        [3,3,2,2],
+        [3,3,3,2,2],
+        [4,4,3,3,1,1]
+    ]
 
-        # print("result: ", dp_algorithm(d, k))
-        # print("--------")
-        print("result slow: ", dp_slow_algorithm(d, k))
-        print()
+    k_list = [2,3]
 
-        # assert greedy_algorithm(d, k) == dp_slow_algorithm(d, k)
-        # assert greedy_algorithm(d, k) == dp_algorithm(d,k)
+    for k in k_list:
+        for d in d_list:
+            # print("d: ", d)
+            # print(greedy_algorithm(d, k), "==", dp_slow_algorithm(d, k))
+
+            # print("result: ", dp_algorithm(d, k))
+            # print("--------")
+
+            result = dp_algorithm(d, k)
+            # result = dp_algorithm(d,k)
+            # print("result slow: ",slow_result )
+            print("result slow: ", result )
+
+            # assert slow_result == results_k_2
+
+            # assert greedy_algorithm(d, k) == dp_slow_algorithm(d, k)
+            # assert greedy_algorithm(d, k) == dp_algorithm(d,k)
  
