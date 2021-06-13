@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "wvenv\\Scripts\\python.exe"
+    "python.pythonPath": "wvenv\\Scripts\\python.exe",
+    "jupyter.jupyterServerType": "local"
 }

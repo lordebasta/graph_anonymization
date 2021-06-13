@@ -2,4 +2,3 @@ networkx
 numpy
 matplotlib
 ipykernel
-jupyterlab
