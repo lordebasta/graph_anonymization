@@ -1,4 +1,4 @@
-with open("Dataset\simpsons.csv") as f:
+with open("simpsons.csv") as f:
     data = list(map(lambda l: l.rstrip().split()[:2], f.readlines()[1:]))
 
 data = [','.join(line) + '\n' for line in data]
