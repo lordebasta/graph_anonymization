@@ -1,10 +1,6 @@
 from random import randint
 import numpy as np
-import collections
 import networkx as nx
-import sys
-import os
-import matplotlib
 from dataclasses import dataclass
 
 
@@ -49,7 +45,7 @@ def greedy_algorithm(d, k):
     
     return result
 
-def dp_slow_algorithm(d, k): 
+def dp_algorithm(d, k): 
     if k == 1: raise ValueError("k == 1 means no anonymization!")
 
     @dataclass
@@ -64,8 +60,6 @@ def dp_slow_algorithm(d, k):
             for j in range(i + 1, len(d)):
                 acc += d[i] - d[j]
                 costs_I[i][j] = acc  
-        # for c in costs_I:
-        #     print(c)
         return costs_I
 
     costs_I = compute_all_I(d, k)
@@ -102,79 +96,29 @@ def dp_slow_algorithm(d, k):
 
     return result
 
-def dp_algorithm(d, k): 
-    if k == 1: raise ValueError("k == 1 means no anonymization!")
-
-    @dataclass
-    class Da:
-        cost: float
-        t: int
-
-    def compute_all_I(d, k):  
-        costs_I = [[float('inf') for _ in range(len(d))] for _ in range(len(d) - 1)]
-        for i in range(len(d) - 1):
-            acc = 0 
-            for j in range(k + i - 2, min(2*k + i -1, len(d))):
-                acc += d[i] - d[j]
-                costs_I[i][j] = acc  
-        return costs_I
-
-    costs_I = compute_all_I(d, k)
-
-    da_list = [Da(cost=float('inf'), t=-1) for _ in d]
-
-    for i in range(len(d)):
-        if i < 2*k - 1:
-            da_list[i] = Da(cost=costs_I[0][i], t=0)
-        else:
-            t, cost = min(((t, da_list[t].cost + costs_I[t+1][i]) for t in range(max(k - 1, i - 2*k), i - k + 1)), key= lambda x:x[1])
-            if costs_I[0][i]  < cost:
-                t = 0
-                cost = costs_I[0][i]
-
-            da_list[i] = Da(cost=cost, t=t)
-
-    t_list = []
-    t = da_list[-1].t
-    while t > 0:
-        t_list.append(t)
-        t = da_list[t].t
-    t_list.append(0)
-
-    result = [v for v in d]
-    end = len(result) - 1 
-    for t in t_list: 
-        if (t == 0): 
-            for i in range(t, end + 1):
-                result[i] = result[t]
-        for i in range(t + 2, end + 1):
-            result[i] = result[t + 1]
-        end = t
-
-    return result
-
-def construct_graph(tab_index, anonymized_degree):
+def construct_graph(tab_index, anonymized_degree_list):
+    anonymized_degree_list_temp = anonymized_degree_list.copy()
     graph = nx.Graph()
-    if sum(anonymized_degree) % 2 == 1:
+    if sum(anonymized_degree_list_temp) % 2 == 1:
         return None
     
-    if sum(anonymized_degree) > len(anonymized_degree)*(len(anonymized_degree)-1): 
+    if sum(anonymized_degree_list_temp) > len(anonymized_degree_list_temp)*(len(anonymized_degree_list_temp)-1): 
         return None
 
     while True:
-        if not all(di >= 0 for di in anonymized_degree):
+        if not all(di >= 0 for di in anonymized_degree_list_temp):
             return None
-        if all(di == 0 for di in anonymized_degree):
+        if all(di == 0 for di in anonymized_degree_list_temp):
             return graph
-        v = np.random.choice((np.where(np.array(anonymized_degree) > 0))[0])
-        dv = anonymized_degree[v]
-        anonymized_degree[v] = 0
-        for index in np.argsort(anonymized_degree)[-dv:][::-1]:
+        v = np.random.choice((np.where(np.array(anonymized_degree_list_temp) > 0))[0])
+        dv = anonymized_degree_list_temp[v]
+        anonymized_degree_list_temp[v] = 0
+        for index in np.argsort(anonymized_degree_list_temp)[-dv:][::-1]:
             if index == v:
                 return None
             if not graph.has_edge(tab_index[v], tab_index[index]):
                 graph.add_edge(tab_index[v], tab_index[index])
-                anonymized_degree[index] = anonymized_degree[index] - 1
+                anonymized_degree_list_temp[index] = anonymized_degree_list_temp[index] - 1
 
 
 if __name__ == "__main__":
