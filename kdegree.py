@@ -48,11 +48,15 @@ def greedy_algorithm(d, k):
 def dp_algorithm(d, k): 
     if k == 1: raise ValueError("k == 1 means no anonymization!")
 
+    #Da is the cost to k-anonymize a vector of degrees. The t variable stores, if there is one, where the first cut is made to anonymize.
     @dataclass
-    class Da:
+    class Da: 
         cost: float
         t: int
 
+    # Having a bottom-top approach, the algorithm will calculate all the I costs, 
+    # that is the costs to anonymize a vector puttin all the values equal. 
+    # This is made for all the possible vectors. 
     def compute_all_I(d, k):  
         costs_I = [[float('inf') for _ in range(len(d))] for _ in range(len(d) - 1)]
         for i in range(len(d) - 1):
@@ -62,10 +66,11 @@ def dp_algorithm(d, k):
                 costs_I[i][j] = acc  
         return costs_I
 
-    costs_I = compute_all_I(d, k)
+    costs_I = compute_all_I(d, k) # Calculation of all I
 
-    da_list = [Da(cost=float('inf'), t=-1) for _ in d]
+    da_list = [Da(cost=float('inf'), t=-1) for _ in d] 
 
+    # Calculation of all Da
     for i in range(len(d)):
         if i < 2*k - 1:
             da_list[i] = Da(cost=costs_I[0][i], t=0)
@@ -77,6 +82,8 @@ def dp_algorithm(d, k):
 
             da_list[i] = Da(cost=cost, t=t)
 
+    # Once all Da are in place, the algorithm takes the last one and see where cuts the vector. Each t is saved, since in an array. 
+    # The array ends with a 0.
     t_list = []
     t = da_list[-1].t
     while t > 0:
@@ -84,6 +91,7 @@ def dp_algorithm(d, k):
         t = da_list[t].t
     t_list.append(0)
 
+    # With the t, the algorithm cuts the vector and actually anonymize. 
     result = [v for v in d]
     end = len(result) - 1 
     for t in t_list: 
